@@ -1,0 +1,89 @@
+---
+title: "Motor Trend"
+author: "A. Kramer"
+date: "Tuesday, March 19, 2015"
+output: word_document
+---
+
+# Executive Summary
+
+In this paper, the mtcars dataset is examined with the goal of determining the impact of transmission type (_am_) on the mile per gallon (_mpg_). We will explore and quantify the differences in fuel consumption. Our analysis indicates that type of transmission is not statistically significant factor in affecting the _mpg_ if considered in conjunction with other variables in the data set. 
+
+## Question: Is an automatic or manual transmission better for MPG?
+
+### Building a model for MPG
+
+At first, the model containing all variables in the dataset is created.
+
+```{r warning=FALSE}
+library(datasets)
+library(car)
+
+fit1 <- lm(mpg ~ as.factor(cyl) + as.factor(vs) + factor(am) + as.factor(gear) 
+           + as.factor(carb) + qsec + drat + hp + wt + disp, data = mtcars)
+
+am1 <- summary(fit1)$coefficient['factor(am)1', ]
+```
+
+Now the model of _mpg_ versus _am_ only is created and the _am_ entry is extracted.
+
+```{r warning=FALSE}
+fit2 <- lm(mpg ~ factor(am), data = mtcars)
+
+am2 <- summary(fit2)$coefficient['factor(am)1', ]
+```
+
+Visually presenting displaying comparison between _am1_ and _am2_ in tabular format.
+
+```{r warning=FALSE}
+rbind(am1, am2)
+```
+
+It is observed that (Pr(>|t|)) in _am2_ indicates that null hypothesis needs to be rejected, suggesting that there is a relationship between type of transmission and _mpg_. However, when taking in account other variables in the data set, as shows by _am1_, the impact of the transmission type on _mpg_ is negated suggesting that null hypothesis cannot be rejected.
+
+## Regression Variance
+
+It is also noted that there may be more variables affecting the _mpg_.  We select weight, horse power, num. of cylinders, and transmission style to build and run the model.
+
+```{r warning=FALSE}
+fit3 <- lm(mpg ~ wt + hp + as.factor(cyl) + factor(am), data = mtcars)
+```
+
+Now we run the anova test to choose between fit2 and fit2 obtaining p-value for choosing between fit2 and fit2 models. _fit3_ is selected.
+
+```{r}
+anova(fit2, fit3)$'Pr(>F)'[2]
+```
+
+The _am_ is excluded from the _fit4_ below and is compared with _adj.r.squared_ from _fit3_ and _fit4_.
+
+```{r warning=FALSE}
+fit4 <- lm(mpg ~ wt + hp + as.factor(cyl), data = mtcars)
+
+am3 = summary(fit3)$adj.r.squared
+
+am4 = summary(fit4)$adj.r.squared
+
+cbind(am3, am4)
+```
+
+It appears that the loss of regression variance between _am3_ and _am4_ is negligible, which strongly suggests that transmission may not be a sole factor affecting _mpg_.
+
+## Variance Inflation Factor
+
+The Variance Inflation Factor (VIF) needs to be investigated to check if more variables are required to be included in the analysis. Assessing GVIF^(1/(2*Df)) and Df values, it is concluded that all the variables included in the analysis of variance are not redundant and are good to use for the analysis.
+
+```{r warning=FALSE}
+vif(fit4)
+```
+
+## Conclusion
+
+Based on the analysis above we proposed that _fit4_ explains mpg.  The residual diagnostic and VIF test do not indicate any major flaws with the analysis.  As such, the conclusion is that there is no statistically significant impact of transmission type (_am_) on mile per gallon (_mpg_). 
+
+## Appendix
+
+```{r warning=FALSE}
+plot(fit4)
+```
+   
